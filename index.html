@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>🏇 Auditoría Forense - Hipódromo</title>
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+    
+    body {
+        font-family: 'Segoe UI', Arial, sans-serif;
+        background: linear-gradient(#0a2e4d, #1e5aa8);
+        color: white;
+        margin: 0;
+        padding: 0;
+        text-align: center;
+    }
+    h1 { 
+        margin: 15px; 
+        font-size: 3em; 
+        text-shadow: 0 0 20px gold; 
+        font-family: 'Press Start 2P', cursive;
+    }
+    .btn {
+        margin: 15px;
+        padding: 18px 45px;
+        font-size: 1.7em;
+        background: #ff4500;
+        color: white;
+        border: none;
+        border-radius: 15px;
+        cursor: pointer;
+        box-shadow: 0 8px 25px rgba(0,0,0,0.5);
+    }
+    .btn:hover { transform: scale(1.08); background: #ff6b00; }
+    .admin-btn { background: #00b300; padding: 20px 50px; font-size: 1.8em; }
+
+    .contenedor-principal {
+        display: flex;
+        justify-content: center;
+        gap: 20px;
+        max-width: 1400px;
+        margin: 20px auto;
+        flex-wrap: wrap;
+    }
+
+    .hipodromo {
+        background: linear-gradient(#228B22, #32CD32);
+        border: 15px solid #8B4513;
+        border-radius: 25px;
+        height: 720px;
+        position: relative;
+        width: 820px;
+        box-shadow: 0 15px 50px rgba(0,0,0,0.7);
+        overflow: hidden;
+    }
+    .pista-fondo {
+        position:absolute; top:0; left:0; right:0; bottom:0;
+        background: repeating-linear-gradient(90deg, rgba(255,255,255,0.18) 0px, rgba(255,255,255,0.18) 70px, transparent 70px, transparent 140px);
+    }
+    .linea-meta {
+        position:absolute;
+        right: 45px;
+        top: 0; bottom: 0;
+        width: 20px;
+        background: repeating-linear-gradient(45deg, #FFD700, #FFD700 40px, #FFF 40px, #FFF 80px);
+        box-shadow: 0 0 30px gold;
+        z-index: 10;
+    }
+
+    .caballo-container {
+        position: absolute;
+        left: 50px;
+        transition: left 1.5s ease-out;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 5px;
+    }
+    .caballo-wrapper { display: flex; align-items: center; gap: 15px; }
+    .caballo { font-size: 3.3em; filter: drop-shadow(4px 4px 8px rgba(0,0,0,0.8)); }
+    .nombre-caballo {
+        background: rgba(0,0,0,0.78);
+        padding: 6px 20px;
+        border-radius: 30px;
+        font-size: 1.18em;
+        font-weight: bold;
+        min-width: 190px;
+        text-align: left;
+    }
+
+    .ranking {
+        background: rgba(0,0,0,0.85);
+        border-radius: 20px;
+        padding: 20px;
+        width: 320px;
+        height: 720px;
+        overflow-y: auto;
+        text-align: left;
+    }
+    .ranking h2 { margin: 0 0 15px 0; color: gold; }
+    .ranking-item {
+        display: flex;
+        justify-content: space-between;
+        background: #222;
+        padding: 10px 15px;
+        margin: 8px 0;
+        border-radius: 10px;
+        font-size: 1.1em;
+    }
+    .posicion { font-weight: bold; color: #ffd700; width: 30px; }
+
+    .pregunta-container {
+        background: rgba(255,255,255,0.97);
+        color: #111;
+        max-width: 860px;
+        margin: 20px auto;
+        padding: 35px;
+        border-radius: 20px;
+        box-shadow: 0 15px 40px rgba(0,0,0,0.6);
+    }
+    .opcion {
+        background: #f1f3f5;
+        padding: 18px;
+        border-radius: 14px;
+        cursor: pointer;
+        font-size: 1.3em;
+        margin: 10px 0;
+        transition: all 0.3s;
+        border: 3px solid transparent;
+    }
+    .opcion:hover { background: #ffe066; }
+    .correcta { background: #a8e6a8 !important; border-color: #2e8b57; }
+    .tiempo { font-size: 2.2em; color: #ffeb3b; font-weight: bold; margin-bottom: 20px; }
+</style>
+</head>
+<body>
+
+<div id="startScreen">
+    <h1>🏇 AUDITORÍA FORENSE 🏇</h1>
+    <h2 style="color:#ffd700;">Carrera de Caballos - Hipódromo</h2>
+    <button class="btn" onclick="iniciarConfiguracion()">COMENZAR CONFIGURACIÓN</button>
+</div>
+
+<div id="configPanel" style="display:none; background:rgba(0,0,0,0.85); padding:30px; max-width:1100px; margin:20px auto; border-radius:20px;">
+    <h2>Configura los 22 Caballos (Solo Administrador)</h2>
+    <div id="listaJugadores" style="max-height:450px; overflow-y:auto; padding:10px;"></div>
+    <button class="btn" onclick="mostrarQR()">Mostrar Código QR para Jugadores →</button>
+</div>
+
+<div id="qrPanel" style="display:none; background:rgba(0,0,0,0.85); padding:30px; max-width:1100px; margin:20px auto; border-radius:20px;">
+    <h2>📱 Escanea este QR con tu teléfono</h2>
+    <img id="qrImage" style="margin:20px auto; display:block; border:12px solid white; border-radius:12px;" src="">
+    <div class="hipodromo" id="hipodromoPreview" style="height:380px; width:700px; margin:20px auto;"></div>
+    <button onclick="iniciarJuegoAdmin()" class="btn admin-btn">🚀 INICIAR LA CARRERA (SOLO ADMINISTRADOR)</button>
+</div>
+
+<div class="contenedor-principal">
+    <div class="hipodromo" id="hipodromoJuego" style="display:none;">
+        <div class="pista-fondo"></div>
+        <div class="linea-meta"></div>
+    </div>
+
+    <div class="ranking" id="rankingPanel" style="display:none;">
+        <h2>🏅 Ranking en Vivo</h2>
+        <div id="listaRanking"></div>
+    </div>
+</div>
+
+<div id="pantallaPregunta" class="pregunta-container" style="display:none;">
+    <div class="tiempo">⏳ Tiempo restante: <span id="segundos">10</span>s</div>
+    <div class="pregunta" id="textoPregunta"></div>
+    <div id="opciones"></div>
+</div>
+
+<div id="pantallaGanador" style="display:none; padding:60px;">
+    <h2 style="font-size:3.5em; color:gold;">🏆 ¡CAMPEÓN DEL HIPÓDROMO! 🏆</h2>
+    <h1 id="nombreGanador" style="font-size:3em; margin:40px;"></h1>
+    <button class="btn" onclick="location.reload()">Jugar de nuevo</button>
+</div>
+
+<script>
+// ==================== 12 PREGUNTAS ====================
+const preguntas = [
+    { tipo: "multiple", pregunta: "Según la definición del libro, la auditoría forense sirve principalmente como:", opciones: ["A) Revisión periódica de estados financieros para la alta dirección", "B) Soporte experto a quienes imparten justicia en la investigación de delitos financieros", "C) Auditoría interna enfocada solo en controles operativos", "D) Evaluación de cumplimiento fiscal"], correcta: 1 },
+    { tipo: "multiple", pregunta: "Los tres elementos del triángulo del fraude son:", opciones: ["A) Presión, oportunidad y racionalización", "B) Necesidad, codicia y supervisión débil", "C) Control interno, ética y capacitación", "D) Denuncia, investigación y sanción"], correcta: 0 },
+    { tipo: "multiple", pregunta: "El esquema de corrupción se caracteriza porque:", opciones: ["A) Siempre altera los estados financieros", "B) Los empleados usan su influencia para obtener beneficio personal, frecuentemente fuera de los libros contables", "C) Solo ocurre en el área de tesorería", "D) Requiere violencia o amenaza física"], correcta: 1 },
+    { tipo: "multiple", pregunta: "¿Cuál es la fase más importante de la metodología de auditoría forense donde se aplican procedimientos analíticos, técnicas asistidas por computadora y entrevistas?", opciones: ["A) Evaluación preliminar", "B) Planeación", "C) Ejecución", "D) Informe"], correcta: 2 },
+    { tipo: "multiple", pregunta: "En los casos prácticos del libro se incluye el caso de:", opciones: ["A) Enron y WorldCom", "B) Supermercado Transnacional, Ingeniería Marina y Lavado de dinero (Cyber criminals)", "C) Parmalat y Satyam", "D) Solo casos de fraude fiscal"], correcta: 1 },
+    { tipo: "multiple", pregunta: "El perfil del auditor forense debe integrar conocimientos de:", opciones: ["A) Solo contabilidad y auditoría financiera", "B) Contabilidad, criminología, cómputo forense, investigación y derecho penal", "C) Solo tecnología y sistemas", "D) Solo derecho y litigios"], correcta: 1 },
+    { tipo: "multiple", pregunta: "¿Cuál de las siguientes es la asociación profesional más reconocida a nivel mundial en la certificación de examinadores de fraude?", opciones: ["A) ACAMS", "B) ACFE (Asociación de Examinadores de Fraude Certificados)", "C) SCCE", "D) ASIS"], correcta: 1 },
+    { tipo: "vf", pregunta: "La auditoría forense tiene solo un enfoque correctivo (investiga fraudes ya cometidos) y no preventivo.", correcta: false },
+    { tipo: "vf", pregunta: "La política de ética organizacional y la política antifraude son elementos clave para prevenir el fraude.", correcta: true },
+    { tipo: "vf", pregunta: "La metodología de auditoría forense incluye las fases de monitoreo y proceso legal después del informe.", correcta: true },
+    { tipo: "vf", pregunta: "El departamento de auditoría forense debe contar con un laboratorio forense con tecnología avanzada para el análisis de evidencia digital.", correcta: true },
+    { tipo: "vf", pregunta: "Las certificaciones profesionales (como CFE o ACAMS) no son importantes para crear perfiles de auditores forenses.", correcta: false }
+];
+
+let jugadores = [];
+let posiciones = [];
+let preguntaActual = 0;
+let timerInterval;
+
+function crearJugadores() {
+    jugadores = [];
+    posiciones = Array(22).fill(0);
+    for (let i = 0; i < 22; i++) {
+        jugadores.push({
+            nombre: `Caballo ${String(i+1).padStart(2, '0')}`,
+            color: ["#FF4500","#1E90FF","#FFD700","#32CD32","#FF1493","#00FFFF","#FFA500","#8A2BE2"][i % 8]
+        });
+    }
+}
+
+function iniciarConfiguracion() {
+    document.getElementById('startScreen').style.display = 'none';
+    document.getElementById('configPanel').style.display = 'block';
+    crearJugadores();
+    renderJugadores();
+}
+
+function renderJugadores() {
+    const cont = document.getElementById('listaJugadores');
+    cont.innerHTML = '';
+    jugadores.forEach((jug, i) => {
+        const div = document.createElement('div');
+        div.style = 'display:flex; align-items:center; background:#222; padding:12px; margin:8px; border-radius:10px;';
+        div.innerHTML = `
+            <span style="width:40px; font-weight:bold;">${i+1}.</span>
+            <input type="text" id="nombre${i}" value="${jug.nombre}" style="flex:1; padding:10px; border-radius:8px; font-size:1.1em;">
+        `;
+        cont.appendChild(div);
+    });
+}
+
+function mostrarQR() {
+    for (let i = 0; i < 22; i++) {
+        const input = document.getElementById(`nombre${i}`);
+        if (input) jugadores[i].nombre = input.value.trim() || `Caballo ${i+1}`;
+    }
+    document.getElementById('configPanel').style.display = 'none';
+    document.getElementById('qrPanel').style.display = 'block';
+    
+    document.getElementById('qrImage').src = `https://api.qrserver.com/v1/create-qr-code/?size=320x320&data=¡Hipódromo%20Auditoría%20Forense!%0AResponde%20rápido%20en%20voz%20alta`;
+    crearPreviewHipodromo();
+}
+
+function crearPreviewHipodromo() {
+    const h = document.getElementById('hipodromoPreview');
+    h.innerHTML = `<div class="pista-fondo"></div><div class="linea-meta"></div>`;
+    for (let i = 0; i < 22; i++) {
+        const c = document.createElement('div');
+        c.className = 'caballo-container';
+        c.style.top = (35 + i * 14) + 'px';
+        c.innerHTML = `<div class="caballo-wrapper"><span class="caballo" style="color:${jugadores[i].color}">🐎</span><span class="nombre-caballo" style="color:${jugadores[i].color}">${jugadores[i].nombre}</span></div>`;
+        h.appendChild(c);
+    }
+}
+
+function iniciarJuegoAdmin() {
+    document.getElementById('qrPanel').style.display = 'none';
+    document.getElementById('hipodromoJuego').style.display = 'block';
+    document.getElementById('rankingPanel').style.display = 'block';
+    document.getElementById('pantallaPregunta').style.display = 'block';
+
+    const hip = document.getElementById('hipodromoJuego');
+    hip.innerHTML = `<div class="pista-fondo"></div><div class="linea-meta"></div>`;
+    
+    for (let i = 0; i < 22; i++) {
+        const c = document.createElement('div');
+        c.className = 'caballo-container';
+        c.style.top = (45 + i * 27) + 'px';
+        c.id = `cont${i}`;
+        c.innerHTML = `<div class="caballo-wrapper"><span class="caballo" style="color:${jugadores[i].color}">🐎</span><span class="nombre-caballo" style="color:${jugadores[i].color}">${jugadores[i].nombre}</span></div>`;
+        hip.appendChild(c);
+    }
+
+    preguntaActual = 0;
+    mostrarPregunta();
+    actualizarRanking();
+}
+
+function actualizarPosiciones() {
+    for (let i = 0; i < 22; i++) {
+        const cont = document.getElementById(`cont${i}`);
+        if (cont) cont.style.left = (50 + posiciones[i] * 5.8) + 'px';
+    }
+}
+
+function actualizarRanking() {
+    const lista = document.getElementById('listaRanking');
+    lista.innerHTML = '';
+
+    // Crear copia ordenada
+    let ordenados = jugadores.map((jug, i) => ({
+        index: i,
+        nombre: jug.nombre,
+        pos: posiciones[i]
+    })).sort((a, b) => b.pos - a.pos);
+
+    ordenados.forEach((item, rank) => {
+        const div = document.createElement('div');
+        div.className = 'ranking-item';
+        div.innerHTML = `
+            <span class="posicion">${rank + 1}°</span>
+            <span style="flex:1; color:${jugadores[item.index].color}">${item.nombre}</span>
+            <span style="color:#90EE90;">${Math.round(item.pos)}%</span>
+        `;
+        lista.appendChild(div);
+    });
+}
+
+function mostrarPregunta() {
+    const q = preguntas[preguntaActual];
+    document.getElementById('textoPregunta').innerHTML = `<strong>Pregunta ${preguntaActual + 1} de 12</strong><br>${q.pregunta}`;
+
+    const ops = document.getElementById('opciones');
+    ops.innerHTML = '';
+
+    if (q.tipo === "multiple") {
+        q.opciones.forEach(op => {
+            const d = document.createElement('div');
+            d.className = 'opcion';
+            d.textContent = op;
+            ops.appendChild(d);
+        });
+    } else {
+        ["✅ Verdadero", "❌ Falso"].forEach(op => {
+            const d = document.createElement('div');
+            d.className = 'opcion';
+            d.textContent = op;
+            ops.appendChild(d);
+        });
+    }
+
+    let segundos = 10;
+    document.getElementById('segundos').textContent = segundos;
+
+    clearInterval(timerInterval);
+    timerInterval = setInterval(() => {
+        segundos--;
+        document.getElementById('segundos').textContent = segundos;
+        if (segundos <= 0) {
+            clearInterval(timerInterval);
+            avanzarYContinuar();
+        }
+    }, 1000);
+}
+
+function avanzarYContinuar() {
+    const q = preguntas[preguntaActual];
+
+    // Mostrar respuesta correcta
+    const opciones = document.querySelectorAll('.opcion');
+    opciones.forEach((op, i) => {
+        if (q.tipo === "multiple" && i === q.correcta) op.classList.add('correcta');
+        if (q.tipo === "vf" && i === (q.correcta ? 0 : 1)) op.classList.add('correcta');
+    });
+
+    // Avance dinámico
+    for (let i = 0; i < 22; i++) {
+        let avance = 4.2;
+        if (Math.random() > 0.45) avance += 8.5;   // caballos rápidos
+
+        if (preguntaActual === 11) avance += 15;   // última pregunta: más avance
+
+        posiciones[i] = Math.min(100, posiciones[i] + avance);
+    }
+
+    actualizarPosiciones();
+    actualizarRanking();
+
+    setTimeout(() => {
+        preguntaActual++;
+        if (preguntaActual >= preguntas.length) {
+            terminarJuego();
+        } else {
+            mostrarPregunta();
+        }
+    }, 2300);
+}
+
+function terminarJuego() {
+    document.getElementById('pantallaPregunta').style.display = 'none';
+    document.getElementById('hipodromoJuego').style.display = 'none';
+    document.getElementById('rankingPanel').style.display = 'none';
+
+    let maxPos = Math.max(...posiciones);
+    let ganadores = [];
+    posiciones.forEach((pos, i) => {
+        if (pos >= maxPos - 3) ganadores.push(jugadores[i].nombre);
+    });
+
+    const texto = ganadores.length > 1 
+        ? `¡Empate entre: ${ganadores.join(" • ")}!` 
+        : `🐎 ${ganadores[0]} 🏆`;
+
+    document.getElementById('nombreGanador').innerHTML = texto;
+    document.getElementById('pantallaGanador').style.display = 'block';
+}
+</script>
+</body>
+</html>
