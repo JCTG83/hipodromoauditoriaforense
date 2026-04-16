@@ -29,16 +29,14 @@
         border: none;
         border-radius: 15px;
         cursor: pointer;
-        box-shadow: 0 8px 25px rgba(0,0,0,0.5);
     }
     .btn:hover { transform: scale(1.08); background: #ff6b00; }
-    .admin-btn { background: #00b300; padding: 20px 50px; font-size: 1.8em; }
 
     .contenedor-principal {
         display: flex;
         justify-content: center;
         gap: 20px;
-        max-width: 1400px;
+        max-width: 1450px;
         margin: 20px auto;
         flex-wrap: wrap;
     }
@@ -58,10 +56,7 @@
         background: repeating-linear-gradient(90deg, rgba(255,255,255,0.18) 0px, rgba(255,255,255,0.18) 70px, transparent 70px, transparent 140px);
     }
     .linea-meta {
-        position:absolute;
-        right: 45px;
-        top: 0; bottom: 0;
-        width: 20px;
+        position:absolute; right: 45px; top: 0; bottom: 0; width: 20px;
         background: repeating-linear-gradient(45deg, #FFD700, #FFD700 40px, #FFF 40px, #FFF 80px);
         box-shadow: 0 0 30px gold;
         z-index: 10;
@@ -70,14 +65,22 @@
     .caballo-container {
         position: absolute;
         left: 50px;
-        transition: left 1.5s ease-out;
+        transition: left 1.6s ease-out;
         display: flex;
         flex-direction: column;
         align-items: flex-start;
         gap: 5px;
     }
-    .caballo-wrapper { display: flex; align-items: center; gap: 15px; }
-    .caballo { font-size: 3.3em; filter: drop-shadow(4px 4px 8px rgba(0,0,0,0.8)); }
+    .caballo-wrapper {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+    .caballo {
+        font-size: 3.4em;
+        transition: transform 0.4s;
+        filter: drop-shadow(4px 4px 8px rgba(0,0,0,0.8));
+    }
     .nombre-caballo {
         background: rgba(0,0,0,0.78);
         padding: 6px 20px;
@@ -92,7 +95,7 @@
         background: rgba(0,0,0,0.85);
         border-radius: 20px;
         padding: 20px;
-        width: 320px;
+        width: 340px;
         height: 720px;
         overflow-y: auto;
         text-align: left;
@@ -102,12 +105,14 @@
         display: flex;
         justify-content: space-between;
         background: #222;
-        padding: 10px 15px;
+        padding: 12px 15px;
         margin: 8px 0;
-        border-radius: 10px;
+        border-radius: 12px;
         font-size: 1.1em;
+        align-items: center;
     }
-    .posicion { font-weight: bold; color: #ffd700; width: 30px; }
+    .posicion { font-weight: bold; color: #ffd700; width: 35px; }
+    .mi-caballo { background: #4CAF50 !important; color: white; }
 
     .pregunta-container {
         background: rgba(255,255,255,0.97);
@@ -131,6 +136,14 @@
     .opcion:hover { background: #ffe066; }
     .correcta { background: #a8e6a8 !important; border-color: #2e8b57; }
     .tiempo { font-size: 2.2em; color: #ffeb3b; font-weight: bold; margin-bottom: 20px; }
+
+    .instruccion {
+        background: rgba(0,0,0,0.7);
+        padding: 15px;
+        border-radius: 12px;
+        margin: 15px auto;
+        max-width: 800px;
+    }
 </style>
 </head>
 <body>
@@ -138,20 +151,26 @@
 <div id="startScreen">
     <h1>🏇 AUDITORÍA FORENSE 🏇</h1>
     <h2 style="color:#ffd700;">Carrera de Caballos - Hipódromo</h2>
-    <button class="btn" onclick="iniciarConfiguracion()">COMENZAR CONFIGURACIÓN</button>
+    <button class="btn" onclick="iniciarConfiguracion()">COMENZAR CONFIGURACIÓN (Administrador)</button>
 </div>
 
 <div id="configPanel" style="display:none; background:rgba(0,0,0,0.85); padding:30px; max-width:1100px; margin:20px auto; border-radius:20px;">
-    <h2>Configura los 22 Caballos (Solo Administrador)</h2>
+    <h2>Configura los 22 Caballos</h2>
     <div id="listaJugadores" style="max-height:450px; overflow-y:auto; padding:10px;"></div>
-    <button class="btn" onclick="mostrarQR()">Mostrar Código QR para Jugadores →</button>
+    <button class="btn" onclick="mostrarQR()">Mostrar Código QR para Jugadores</button>
 </div>
 
 <div id="qrPanel" style="display:none; background:rgba(0,0,0,0.85); padding:30px; max-width:1100px; margin:20px auto; border-radius:20px;">
-    <h2>📱 Escanea este QR con tu teléfono</h2>
+    <h2>📱 Cada jugador escanea este QR</h2>
+    <div class="instruccion">
+        <strong>Instrucciones para jugadores:</strong><br>
+        1. Escanea el QR con tu celular<br>
+        2. Di en voz alta el número de tu caballo<br>
+        3. Responde rápido las preguntas
+    </div>
     <img id="qrImage" style="margin:20px auto; display:block; border:12px solid white; border-radius:12px;" src="">
     <div class="hipodromo" id="hipodromoPreview" style="height:380px; width:700px; margin:20px auto;"></div>
-    <button onclick="iniciarJuegoAdmin()" class="btn admin-btn">🚀 INICIAR LA CARRERA (SOLO ADMINISTRADOR)</button>
+    <button onclick="iniciarJuegoAdmin()" class="btn admin-btn">🚀 INICIAR LA CARRERA (Solo Administrador)</button>
 </div>
 
 <div class="contenedor-principal">
@@ -180,7 +199,7 @@
 
 <script>
 // ==================== 12 PREGUNTAS ====================
-const preguntas = [
+const preguntas = [ /* mismo array de 12 preguntas que antes */ 
     { tipo: "multiple", pregunta: "Según la definición del libro, la auditoría forense sirve principalmente como:", opciones: ["A) Revisión periódica de estados financieros para la alta dirección", "B) Soporte experto a quienes imparten justicia en la investigación de delitos financieros", "C) Auditoría interna enfocada solo en controles operativos", "D) Evaluación de cumplimiento fiscal"], correcta: 1 },
     { tipo: "multiple", pregunta: "Los tres elementos del triángulo del fraude son:", opciones: ["A) Presión, oportunidad y racionalización", "B) Necesidad, codicia y supervisión débil", "C) Control interno, ética y capacitación", "D) Denuncia, investigación y sanción"], correcta: 0 },
     { tipo: "multiple", pregunta: "El esquema de corrupción se caracteriza porque:", opciones: ["A) Siempre altera los estados financieros", "B) Los empleados usan su influencia para obtener beneficio personal, frecuentemente fuera de los libros contables", "C) Solo ocurre en el área de tesorería", "D) Requiere violencia o amenaza física"], correcta: 1 },
@@ -240,7 +259,8 @@ function mostrarQR() {
     document.getElementById('configPanel').style.display = 'none';
     document.getElementById('qrPanel').style.display = 'block';
     
-    document.getElementById('qrImage').src = `https://api.qrserver.com/v1/create-qr-code/?size=320x320&data=¡Hipódromo%20Auditoría%20Forense!%0AResponde%20rápido%20en%20voz%20alta`;
+    document.getElementById('qrImage').src = `https://api.qrserver.com/v1/create-qr-code/?size=320x320&data=¡Hipódromo%20Auditoría%20Forense!%0AEscoge%20tu%20caballo%20y%20responde%20rápido`;
+    
     crearPreviewHipodromo();
 }
 
@@ -251,7 +271,7 @@ function crearPreviewHipodromo() {
         const c = document.createElement('div');
         c.className = 'caballo-container';
         c.style.top = (35 + i * 14) + 'px';
-        c.innerHTML = `<div class="caballo-wrapper"><span class="caballo" style="color:${jugadores[i].color}">🐎</span><span class="nombre-caballo" style="color:${jugadores[i].color}">${jugadores[i].nombre}</span></div>`;
+        c.innerHTML = `<div class="caballo-wrapper"><span class="caballo" style="color:${jugadores[i].color}; transform:scaleX(1);">🐎</span><span class="nombre-caballo" style="color:${jugadores[i].color}">${jugadores[i].nombre}</span></div>`;
         h.appendChild(c);
     }
 }
@@ -270,7 +290,12 @@ function iniciarJuegoAdmin() {
         c.className = 'caballo-container';
         c.style.top = (45 + i * 27) + 'px';
         c.id = `cont${i}`;
-        c.innerHTML = `<div class="caballo-wrapper"><span class="caballo" style="color:${jugadores[i].color}">🐎</span><span class="nombre-caballo" style="color:${jugadores[i].color}">${jugadores[i].nombre}</span></div>`;
+        c.innerHTML = `
+            <div class="caballo-wrapper">
+                <span class="caballo" id="caballoEmoji${i}" style="color:${jugadores[i].color}; transform:scaleX(1);">🐎</span>
+                <span class="nombre-caballo" style="color:${jugadores[i].color}">${jugadores[i].nombre}</span>
+            </div>
+        `;
         hip.appendChild(c);
     }
 
@@ -290,20 +315,21 @@ function actualizarRanking() {
     const lista = document.getElementById('listaRanking');
     lista.innerHTML = '';
 
-    // Crear copia ordenada
     let ordenados = jugadores.map((jug, i) => ({
         index: i,
         nombre: jug.nombre,
-        pos: posiciones[i]
+        pos: posiciones[i],
+        color: jug.color
     })).sort((a, b) => b.pos - a.pos);
 
     ordenados.forEach((item, rank) => {
         const div = document.createElement('div');
         div.className = 'ranking-item';
+        if (rank === 0) div.style.border = '2px solid gold';
         div.innerHTML = `
             <span class="posicion">${rank + 1}°</span>
-            <span style="flex:1; color:${jugadores[item.index].color}">${item.nombre}</span>
-            <span style="color:#90EE90;">${Math.round(item.pos)}%</span>
+            <span style="flex:1; color:${item.color}">${item.nombre}</span>
+            <span style="color:#90EE90; font-weight:bold;">${Math.round(item.pos)}%</span>
         `;
         lista.appendChild(div);
     });
@@ -356,14 +382,18 @@ function avanzarYContinuar() {
         if (q.tipo === "vf" && i === (q.correcta ? 0 : 1)) op.classList.add('correcta');
     });
 
-    // Avance dinámico
+    // Avance dinámico + volteo del caballo
     for (let i = 0; i < 22; i++) {
-        let avance = 4.2;
-        if (Math.random() > 0.45) avance += 8.5;   // caballos rápidos
+        let avance = 4.5;
+        if (Math.random() > 0.4) avance += 9;   // caballos rápidos
 
-        if (preguntaActual === 11) avance += 15;   // última pregunta: más avance
+        if (preguntaActual === 11) avance += 18; // última pregunta: gran avance
 
         posiciones[i] = Math.min(100, posiciones[i] + avance);
+
+        // Voltear caballo hacia la derecha (dirección de avance)
+        const emoji = document.getElementById(`caballoEmoji${i}`);
+        if (emoji) emoji.style.transform = 'scaleX(1)';
     }
 
     actualizarPosiciones();
